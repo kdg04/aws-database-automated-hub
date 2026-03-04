@@ -1,17 +1,20 @@
-name: "Terraform Plan"
+name: "Terraform Automation"
 
 on:
-  pull_request:
+  push:
     branches:
       - main
+  pull_request:
 
 jobs:
-  terraform-plan:
+  terraform:
+    name: "Terraform Run"
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_REGION: "us-east-1" # Ensure this matches your RDS/S3 region
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -23,4 +26,8 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve tfplan
