@@ -1,0 +1,28 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "TerraformStateAndNetworking",
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket", "s3:GetObject", "s3:PutObject",
+                "ec2:CreateSecurityGroup", "ec2:Describe*", "ec2:AuthorizeSecurityGroupIngress"
+            ],
+            "Resource": [
+                "arn:aws:s3:::terraform-state-bucket-kdg-2026",
+                "arn:aws:s3:::terraform-state-bucket-kdg-2026/*",
+                "*"
+            ]
+        },
+        {
+            "Sid": "InfrastructureManagement",
+            "Effect": "Allow",
+            "Action": [
+                "rds:*",
+                "dynamodb:*",
+                "dms:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
