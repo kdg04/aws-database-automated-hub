@@ -15,7 +15,8 @@
             ]
         },
         {
-            "Sid": "InfrastructureManagement",
+            "Sid": "InfrastructureManagement",         // Unlike User Permissions this is Service Roles. It allows you to create the RDS, 
+                                                       // DynamoDB, and DMS resources.
             "Effect": "Allow",
             "Action": [
                 "rds:*",
