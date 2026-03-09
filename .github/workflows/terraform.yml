@@ -36,7 +36,7 @@ jobs:
         run: terraform apply -auto-approve tfplan
 
       - name: Wait for Migration
-        run: sleep 1800                        # 30 minutes ==> 1800 seconds
+        run: sleep 1800                        # 30 x 60 = 1800 secs
 
       - name: Terraform Destroy
         if: always()                           # This ensures it runs even if the previous steps failed!
