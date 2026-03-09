@@ -3,10 +3,10 @@ name: "Terraform Automation"
 on:
   push:
     branches:
-      - "feat/initial-infra"
+      - "main"
   pull_request:
     branches:
-      - "feat/initial-infra"
+      - "main"
 
 jobs:
   terraform:
@@ -34,3 +34,12 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve tfplan
+
+      - name: Wait for Migration
+        run: sleep 1800                        # 30 x 60 = 1800 secs
+
+      - name: Terraform Destroy
+        if: always()                           # This ensures it runs even if the previous steps failed!
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}           # This 'TF_VAR_' prefix is the magic trick
+        run: terraform destroy -auto-approve 
