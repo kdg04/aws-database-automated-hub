@@ -51,6 +51,81 @@ resource "aws_dynamodb_table" "ecommerce_nosql" {
     }
 }
 
+# 4.a Look up your Default VPC
+data "aws_vpc" "default" {       # Data are already existing resources created manually, by terraform, or by another team
+  default = true
+}
+
+# 4.b Look up the subnets inside that VPC
+data "aws_subnets" "all" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+# 4.c Use them in your Subnet Group
+resource "aws_dms_replication_subnet_group" "dms_group" {      # Resources are owned and managed (create/update/delete) by Terraform
+  replication_subnet_group_id          = "dms-lab-subnet-group"
+  replication_subnet_group_description = "DMS Subnets"
+  
+  # This dynamically pulls all subnet IDs found above
+  subnet_ids = data.aws_subnets.all.ids
+}
+
+# 5.a THE PLUMBER: Required for the DMS engine to exist in the VPC
+resource "aws_iam_role" "dms_vpc_role" {
+  name = "dms-vpc-role"
+  assume_role_policy = jsonencode({     # Trust policy, who is allowed to bear the role
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "dms.amazonaws.com" }       # role bearer
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "dms_vpc_attach" {
+  role       = aws_iam_role.dms_vpc_role.name
+  policy_arn = "arn:aws:policy/service-role/AmazonDMSVPCManagementRole"
+}
+
+# 2. THE CloudWatch Role: Required for logging
+resource "aws_iam_role" "dms_cw_role" {
+  name = "dms-cloudwatch-logs-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "dms.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "dms_cw_attach" {
+  role       = aws_iam_role.dms_cw_role.name
+  policy_arn = "arn:aws:policy/service-role/AmazonDMSCloudWatchLogsRole"
+}
+
+resource "aws_iam_role" "dms_dynamodb_role" {
+  name = "dms-dynamodb-access-role"
+  assume_role_policy = jsonencode ({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = Allow
+      Principal = { Service = "dms.amazonaws.com"}
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "dms_dynamodb_attach" {
+  role = aws_iam_role.dms_dynamodb_role.name
+  policy_arn = "arn:aws:policy/AmazonDynamoDBFullAccess"
+}
+
 resource "aws_security_group" "allow_mysql" {
   name          = "allow_mysql_traffic"
   description   = "Allow inbound MySQL traffic"
@@ -84,6 +159,7 @@ resource "aws_dms_endpoint" "target" {
   endpoint_id   = "dynamodb-target-endpoint"
   endpoint_type = "target"
   engine_name   = "dynamodb"
+  service_access_role = aws_iam_role.dms_dynamodb_role.arn
 }
 
 resource "aws_dms_replication_instance" "my_dms_instance" {
