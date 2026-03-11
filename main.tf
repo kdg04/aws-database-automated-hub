@@ -123,7 +123,7 @@ resource "aws_iam_role" "dms_dynamodb_role" {
 
 resource "aws_iam_role_policy_attachment" "dms_dynamodb_attach" {
   role = aws_iam_role.dms_dynamodb_role.name
-  policy_arn = "arn:aws:policy/AmazonDynamoDBFullAccess"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDynamoDBFullAccess"
 }
 
 resource "aws_security_group" "allow_mysql" {
