@@ -88,7 +88,7 @@ resource "aws_iam_role" "dms_vpc_role" {
 
 resource "aws_iam_role_policy_attachment" "dms_vpc_attach" {
   role       = aws_iam_role.dms_vpc_role.name
-  policy_arn = "arn:aws:policy/service-role/AmazonDMSVPCManagementRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole"
 }
 
 # 2. THE CloudWatch Role: Required for logging
@@ -106,7 +106,7 @@ resource "aws_iam_role" "dms_cw_role" {
 
 resource "aws_iam_role_policy_attachment" "dms_cw_attach" {
   role       = aws_iam_role.dms_cw_role.name
-  policy_arn = "arn:aws:policy/service-role/AmazonDMSCloudWatchLogsRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSCloudWatchLogsRole"
 }
 
 resource "aws_iam_role" "dms_dynamodb_role" {
@@ -115,7 +115,7 @@ resource "aws_iam_role" "dms_dynamodb_role" {
     Version = "2012-10-17"
     Statement = [{
       Action = "sts:AssumeRole"
-      Effect = Allow
+      Effect = "Allow"
       Principal = { Service = "dms.amazonaws.com"}
     }]
   })
