@@ -139,7 +139,7 @@ resource "aws_iam_role" "dms_ec2_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "dms_dynamodb_attach" {
+resource "aws_iam_role_policy_attachment" "dms_ec2_attach" {
   role = aws_iam_role.dms_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2FullAccess"
 }
