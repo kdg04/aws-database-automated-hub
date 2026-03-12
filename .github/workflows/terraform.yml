@@ -26,7 +26,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init 
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
@@ -38,8 +38,8 @@ jobs:
       - name: Wait for Migration
         run: sleep 1800                        # 30 x 60 = 1800 secs
 
-      - name: Terraform Destroy
-        if: always()                           # This ensures it runs even if the previous steps failed!
-        env:
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}           # This 'TF_VAR_' prefix is the magic trick
-        run: terraform destroy -auto-approve 
+      # - name: Terraform Destroy
+      #  if: always()                           # This ensures it runs even if the previous steps failed!
+      #  env:
+      #    TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}           # This 'TF_VAR_' prefix is the magic trick
+      #  run: terraform destroy -auto-approve 

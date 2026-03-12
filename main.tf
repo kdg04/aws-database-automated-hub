@@ -22,6 +22,7 @@ provider "aws" {                           # The AWS plugin that Terraform downl
 resource "aws_db_instance" "mysql_source" {            # resource "Type" "logical name (not seen in AWS console)" logical name is used for
                                                        # another resource block to refer it in this  .tf file. It is generally used to 
                                                        # access the Id as aws_db_instance.mysql_source.id
+  identifier = "mysql-source-db"
   allocated_storage    = 10
   engine               = "mysql"
   engine_version       = "8.0"
@@ -126,6 +127,23 @@ resource "aws_iam_role_policy_attachment" "dms_dynamodb_attach" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDynamoDBFullAccess"
 }
 
+resource "aws_iam_role" "dms_ec2_role" {
+  name = "dms-ec2-access-role"
+  assume_role_policy = jsonencode ({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "dms.amazonaws.com"}
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "dms_dynamodb_attach" {
+  role = aws_iam_role.dms_ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2FullAccess"
+}
+
 resource "aws_security_group" "allow_mysql" {
   name          = "allow_mysql_traffic"
   description   = "Allow inbound MySQL traffic"
@@ -177,6 +195,12 @@ resource "aws_dms_replication_task" "migration_task" {
   replication_instance_arn = aws_dms_replication_instance.my_dms_instance.replication_instance_arn
   source_endpoint_arn      = aws_dms_endpoint.source.endpoint_arn
   target_endpoint_arn      = aws_dms_endpoint.target.endpoint_arn
+
+  depends_on = [
+    aws_dms_replication_instance.my_dms_instance,
+    aws_dms_endpoint.source,
+    aws_dms_endpoint.target
+  ]
 
   table_mappings = jsonencode({
     rules = [
