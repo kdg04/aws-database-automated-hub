@@ -75,8 +75,8 @@ resource "aws_dms_replication_subnet_group" "dms_group" {      # Resources are o
 }
 
 # 5.a THE PLUMBER: Required for the DMS engine to exist in the VPC
-resource "aws_iam_role" "dms_vpc_role" {
-  name = "dms-vpc-role"
+resource "aws_iam_role" "dms_vpc_role_v2" {
+  name = "dms-vpc-role-v2"              # <== this name is what shows in the console
   assume_role_policy = jsonencode({     # Trust policy, who is allowed to bear the role
     Version = "2012-10-17"
     Statement = [{
@@ -88,13 +88,13 @@ resource "aws_iam_role" "dms_vpc_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "dms_vpc_attach" {
-  role       = aws_iam_role.dms_vpc_role.name
+  role       = aws_iam_role.dms_vpc_role_v2.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole"
 }
 
 # 2. THE CloudWatch Role: Required for logging
-resource "aws_iam_role" "dms_cw_role" {
-  name = "dms-cloudwatch-logs-role"
+resource "aws_iam_role" "dms_cw_role_v2" {
+  name = "dms-cloudwatch-logs-role-v2"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -106,12 +106,12 @@ resource "aws_iam_role" "dms_cw_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "dms_cw_attach" {
-  role       = aws_iam_role.dms_cw_role.name
+  role       = aws_iam_role.dms_cw_role_v2.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSCloudWatchLogsRole"
 }
 
-resource "aws_iam_role" "dms_dynamodb_role" {
-  name = "dms-dynamodb-access-role"
+resource "aws_iam_role" "dms_dynamodb_role_v2" {
+  name = "dms-dynamodb-access-role-v2"
   assume_role_policy = jsonencode ({
     Version = "2012-10-17"
     Statement = [{
@@ -123,12 +123,12 @@ resource "aws_iam_role" "dms_dynamodb_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "dms_dynamodb_attach" {
-  role = aws_iam_role.dms_dynamodb_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDynamoDBFullAccess"
+  role = aws_iam_role.dms_dynamodb_role_v2.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
 }
 
-resource "aws_iam_role" "dms_ec2_role" {
-  name = "dms-ec2-access-role"
+resource "aws_iam_role" "dms_ec2_role_v2" {
+  name = "dms-ec2-access-role-v2"
   assume_role_policy = jsonencode ({
     Version = "2012-10-17"
     Statement = [{
@@ -140,8 +140,8 @@ resource "aws_iam_role" "dms_ec2_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "dms_ec2_attach" {
-  role = aws_iam_role.dms_ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2FullAccess"
+  role = aws_iam_role.dms_ec2_role_v2.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
 }
 
 resource "aws_security_group" "allow_mysql" {
@@ -177,7 +177,7 @@ resource "aws_dms_endpoint" "target" {
   endpoint_id   = "dynamodb-target-endpoint"
   endpoint_type = "target"
   engine_name   = "dynamodb"
-  service_access_role = aws_iam_role.dms_dynamodb_role.arn
+  service_access_role = aws_iam_role.dms_dynamodb_role_v2.arn
 }
 
 resource "aws_dms_replication_instance" "my_dms_instance" {
@@ -185,6 +185,10 @@ resource "aws_dms_replication_instance" "my_dms_instance" {
   replication_instance_class = "dms.t3.small" 
   allocated_storage          = 10
   apply_immediately          = true
+  depends_on = [
+    aws_iam_role_policy_attachment.dms_vpc_attach,
+    aws_iam_role_policy_attachment.dms_cw_attach
+  ]
 }
 
 resource "aws_dms_replication_task" "migration_task" {
