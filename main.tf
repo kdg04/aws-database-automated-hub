@@ -180,7 +180,7 @@ resource "aws_dms_endpoint" "target" {
   service_access_role = aws_iam_role.dms_dynamodb_role.arn
 }
 
-resource "aws_dms_replication_instance" "my_dms_instance" {
+/* resource "aws_dms_replication_instance" "my_dms_instance" {
   replication_instance_id    = "migration-engine-lab"
   replication_instance_class = "dms.t3.small" 
   allocated_storage          = 10
@@ -221,4 +221,4 @@ resource "aws_dms_replication_task" "migration_task" {
       }
     ]
   })
-}
+} */
