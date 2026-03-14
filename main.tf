@@ -177,7 +177,7 @@ resource "aws_dms_endpoint" "target" {
   endpoint_id   = "dynamodb-target-endpoint"
   endpoint_type = "target"
   engine_name   = "dynamodb"
-  service_access_role = aws_iam_role.dms_dynamodb_role_v2.arn
+  service_access_role = aws_iam_role.dms_dynamodb_role.arn
 }
 
 resource "aws_dms_replication_instance" "my_dms_instance" {
